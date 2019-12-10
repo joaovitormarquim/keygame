@@ -13,7 +13,6 @@ io.on('connection', onConnection);
 http.listen(port, console.log('listening on port ' + port));
 
 function onConnection(socket) {
-    socket.score = 10;
     addPlayer(socket);
     socket.on('key', (key) => onKeyPress(socket, key));
     socket.on('disconnect', () => removePlayer(socket));
@@ -66,7 +65,7 @@ function playerScored(socket) {
 
 function resetScores() {
     for (id in playersMap) {
-        playersMap[id].score = 10;
+        playersMap[id].score = 10 * players;
         updatePlayer(playersMap[id]);
     }
 }
