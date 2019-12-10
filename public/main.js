@@ -1,36 +1,21 @@
 'use strict';
 
 window.onload = () => {
+    let players = 0;
     let score = 0;
-    let key = null;
+    let key = '';
 
     const socket = io();
     const board = document.getElementById('board');
     const context = board.getContext('2d');
 
-    socket.on('score', onScoreEvent);
-    socket.on('key', onKeyEvent);
-
-    window.addEventListener('resize', onResize, false);
-    onResize();
-
-    function onScoreEvent(data) {
-        console.log('TCL: -------------------------------');
-        console.log('TCL: onScoreEvent -> data', data);
-        console.log('TCL: -------------------------------');
-        score = data;
+    function onGameEvent(data) {
+        score = data.score || score;
+        key = data.key || key;
+        players = data.players || players;
         draw();
     }
 
-    function onKeyEvent(data) {
-        console.log('TCL: -------------------------------');
-        console.log('TCL: onKeyEvent -> data', data);
-        console.log('TCL: -------------------------------');
-        key = data;
-        draw();
-    }
-
-    // make the canvas fill its parent
     function onResize() {
         board.width = window.innerWidth;
         board.height = window.innerHeight;
@@ -43,16 +28,39 @@ window.onload = () => {
 
     function draw() {
         clear();
-        context.font = "30px Roboto";
+
+        context.font = "25px Roboto";
         context.fillStyle = "black";
         context.textAlign = "center";
-        context.fillText(`Score: ${score}`, board.width / 2, board.height / 2 - 200);
+        context.fillText(`Players: ${players}  Score: ${score}`, board.width / 2, board.height / 2 - 200);
 
-        if (key) {
-            context.font = "200px Roboto";
-            context.fillStyle = "blue";
-            context.textAlign = "center";
-            context.fillText(key, board.width / 2, board.height / 2);
-        }
+        context.font = "25px Roboto";
+        context.fillStyle = "green";
+        context.textAlign = "center";
+        context.fillText('PRESS', board.width / 2, board.height / 2 - 150);
+
+        context.font = "200px Roboto";
+        context.fillStyle = "green";
+        context.textAlign = "center";
+        context.fillText(key, board.width / 2, board.height / 2);
     }
+
+    function onKeyPress(event) {
+        socket.emit('key', event.key)
+    }
+
+    function onDisconnect() {
+        clear();
+
+        context.font = "200px Roboto";
+        context.fillStyle = "red";
+        context.textAlign = "center";
+        context.fillText('Você perdeu!', board.width / 2, board.height / 2);
+    }
+
+    socket.on('game', onGameEvent);
+    socket.on('disconnect', onDisconnect);
+    window.addEventListener('resize', onResize, false);
+    window.addEventListener('keypress', onKeyPress);
+    onResize();
 };
